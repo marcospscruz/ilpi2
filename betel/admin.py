@@ -3,7 +3,7 @@ from betel.models import Hospede, Familiar
 
 # Register your models here.
 
-class FamiliarInline(admin.TabularInline):
+class FamiliarInline(admin.StackedInline):
     model = Familiar
 
 @admin.register(Hospede) 

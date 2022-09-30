@@ -178,7 +178,7 @@ class Hospede(models.Model):
     ) 
     
     n_de_comodos = models.PositiveIntegerField(null=True, blank=True)
-    valor_aluguel_ou_financiamento = models.CharField(max_length=12, null=True, blank=True)
+    valor_aluguel_ou_financiamento = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     TIPO_DE_CONSTRUCAO = (
         ('AL',	'Alvenaria'),
@@ -218,8 +218,8 @@ class Hospede(models.Model):
     )
     
     recebe_13_salario = models.BooleanField(null=True)
-    parcela1_13 = models.CharField(max_length=12, null=True, blank=True)
-    parcela2_13 = models.CharField(max_length=12, null=True, blank=True)
+    parcela1_13 = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    parcela2_13 = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     RECEBE_BENEFICIO_DE_PRESTACAO_CONTINUADA = (
         ('NR',	'Não Recebe'),
@@ -250,9 +250,34 @@ class Hospede(models.Model):
     
 class Familiar(models.Model):
     hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
-    nome = models.CharField(max_length=50, help_text='Insira o nome do hóspede', null=True, blank=True)
+    nome = models.CharField(max_length=50, help_text='Insira o nome do familiar', null=True, blank=True)
     data_de_nascimento = models.DateField(null=True, blank=True)
     parentesco_vinculo = models.CharField(max_length=20, null=True, blank=True)
+    profissao = models.CharField(max_length=20, null=True, blank=True)
+    ocupacao = models.CharField(max_length=20, null=True, blank=True)
+    renda = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    fatores_de_risco_social = models.CharField(max_length=20, null=True, blank=True)
+    estuda = models.BooleanField(null=True)
+    
+    GRAU_DE_INSTRUCAO = (
+        ('EFI',	'Ensino Fundamental Incompleto'),
+        ('EFC',	'Ensino Fundamental Completo'),
+        ('EMI',	'Ensino Médio Incompleto'),
+        ('EMC',	'Ensino Médio Completo'),
+        ('ESI',	'Ensino Superior Incompleto'),
+        ('ESC',	'Ensino Superior Completo'),
+    )
+    
+    grau_de_instrucao = models.CharField(
+        max_length=3,
+        choices=GRAU_DE_INSTRUCAO,
+        null=True, blank=True
+    )
+    
+    inserido_em_ilpi = models.BooleanField(null=True)
+    inserido_em_cedesp = models.BooleanField(null=True)
+    inserido_em_nci = models.BooleanField(null=True)
+
  
     class Meta: 
 
