@@ -22,7 +22,7 @@ class Hospede(models.Model):
     nascimento = models.DateField(null=True, blank=True)
     n_bdc = models.CharField(max_length=20, null=True, blank=True)
     n_nis = models.CharField(max_length=20, null=True, blank=True)
-    n_cns = models.CharField(max_length=20, null=True, blank=True)
+    n_cns_sus = models.CharField(max_length=20, null=True, blank=True)
     
     MOTIVO_DA_HOSPEDAGEM = (
         ('AB',	'Abandono'),
@@ -35,6 +35,19 @@ class Hospede(models.Model):
     motivo_da_hospedagem = models.CharField(
         max_length=2,
         choices=MOTIVO_DA_HOSPEDAGEM,
+        null=True, blank=True
+    )
+    
+    PROCEDENCIA = (
+        ('CA',	'Casa'),
+        ('HO',	'Hospital'),
+        ('LI',	'Lar de Idosos'),
+        ('OU',	'Outro'),
+    )
+    
+    procedencia = models.CharField(
+        max_length=2,
+        choices=PROCEDENCIA,
         null=True, blank=True
     )
     
@@ -247,6 +260,13 @@ class Hospede(models.Model):
 
     def __str__(self): 
         return self.nome_do_hospede 
+
+class Fator_de_Risco_Social(models.Model):
+    nome = models.CharField(max_length=50, null=True, blank=True)
+    
+    def __str__(self): 
+        return self.nome
+
     
 class Familiar(models.Model):
     hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
@@ -256,7 +276,7 @@ class Familiar(models.Model):
     profissao = models.CharField(max_length=20, null=True, blank=True)
     ocupacao = models.CharField(max_length=20, null=True, blank=True)
     renda = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    fatores_de_risco_social = models.CharField(max_length=20, null=True, blank=True)
+    fatores_de_risco_social = models.ManyToManyField(Fator_de_Risco_Social, help_text='Selecione os fatores de risco')
     estuda = models.BooleanField(null=True)
     
     GRAU_DE_INSTRUCAO = (
@@ -286,3 +306,168 @@ class Familiar(models.Model):
     def __str__(self): 
 
         return f'{self.hospede} -> {self.nome}' 
+        
+class Equipe(models.Model):
+    nome = models.CharField(max_length=50, help_text='Insira o nome', null=True, blank=True)
+    data_de_nascimento = models.DateField(null=True, blank=True)
+    profissao = models.CharField(max_length=20, null=True, blank=True)
+
+    JORNADA = (
+        ('12/36', '12h por 36h'),
+        ('6/1', '6d por 1d'),
+        ('NI', 'Não informado')
+    
+    )
+    
+    jornada = models.CharField(
+        max_length=5,
+        choices=JORNADA,
+        null=True, blank=True
+    )
+    
+    endereco_rua = models.CharField(max_length=20, null=True, blank=True)
+    endereco_numero = models.PositiveIntegerField(null=True, blank=True)
+    endereco_complemento = models.CharField(max_length=10, null=True, blank=True)
+    endereco_cep = models.CharField(max_length=9, help_text='Formato: 00000-000', null=True, blank=True)
+    endereco_bairro = models.CharField(max_length=20, null=True, blank=True)
+    endereco_distrito = models.CharField(max_length=20, null=True, blank=True)
+    telefone_residencial = models.CharField(max_length=20, help_text='Formato: (00)00000-0000', null=True, blank=True)
+    telefone_celular = models.CharField(max_length=20, help_text='Formato: (00)00000-0000', null=True, blank=True)
+    telefone_outro = models.CharField(max_length=20, help_text='Formato: (00)00000-0000', null=True, blank=True)
+    
+    def __str__(self): 
+        return self.nome
+
+class Anotacao_de_Enfermagem(models.Model):
+    hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
+    data_hora = models.DateTimeField(null=True, blank=True)
+    anotacao = models.CharField(max_length=255, null=True, blank=True)
+    responsavel = models.ForeignKey('Equipe', on_delete=models.SET_NULL, blank=True, null=True,)
+    
+    def __str__(self):
+        return f'{self.hospede} -> {self.data_hora}'
+    
+class Sinais_Vitais(models.Model):
+    hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
+    data_hora = models.DateTimeField(null=True, blank=True)
+    pa = models.CharField(max_length=20, null=True, blank=True)
+    pulso = models.CharField(max_length=20, null=True, blank=True)
+    resp = models.CharField(max_length=20, null=True, blank=True)
+    temp = models.CharField(max_length=20, null=True, blank=True)
+    sat = models.CharField(max_length=20, null=True, blank=True)
+    diures = models.CharField(max_length=20, null=True, blank=True)
+    evacuacao = models.CharField(max_length=20, null=True, blank=True)
+    responsavel = models.ForeignKey('Equipe', on_delete=models.SET_NULL, blank=True, null=True,)
+    
+    def __str__(self):
+        return f'{self.hospede} -> {self.data_hora}'
+    
+class Controle_de_Dextro(models.Model):
+    hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
+    data_hora = models.DateTimeField(null=True, blank=True)
+    dextro = models.CharField(max_length=20, null=True, blank=True)
+    responsavel = models.ForeignKey('Equipe', on_delete=models.SET_NULL, blank=True, null=True,)
+    
+    def __str__(self):
+        return f'{self.hospede} -> {self.data_hora}'
+    
+class Evolucao(models.Model):
+    hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
+    data_hora = models.DateTimeField(null=True, blank=True)
+
+    TIPO_DE_EVOLUCAO = (
+        ('EN',	'Enfermagem'),
+        ('FI',	'Fisioterapeutica'),
+        ('NU',	'Nutrição'),
+        ('ME',  'Médica'),
+    )
+    
+    tipo_de_evolucao = models.CharField(
+        max_length=2,
+        choices= TIPO_DE_EVOLUCAO,
+        null=True, blank=True
+    )
+    
+    evolucao = models.TextField(max_length=500, null=True, blank=True) 
+    responsavel = models.ForeignKey('Equipe', on_delete=models.SET_NULL, blank=True, null=True,)
+    
+    def __str__(self):
+        return f'{self.hospede} -> {self.data_hora}'
+
+class Medicacao(models.Model):
+    nome = models.CharField(max_length=50, help_text='Insira o nome do remédio', null=True, blank=True)
+    quantidade = models.PositiveIntegerField(null=True, blank=True)
+    
+    UNIDADE = (
+        ('mg',	'miligrama'),
+        ('UI',	'Unidades Internacionais'),
+    )
+    
+    unidade = models.CharField(
+        max_length=10,
+        choices= UNIDADE,
+        null=True, blank=True
+    )
+    
+    fabricante = models.CharField(max_length=25, null=True, blank=True)
+    generico = models.BooleanField(null=True)
+    
+    def __str__(self):
+        return f'{self.nome}, {self.quantidade} {self.unidade} - {self.fabricante} Genérico? {self.generico}'
+    
+class Prescricao(models.Model):
+    hospede = models.ForeignKey('Hospede', on_delete=models.CASCADE)
+    medicacao = models.ForeignKey('Medicacao', on_delete=models.CASCADE)
+    dose = models.FloatField(null=True, blank=True)
+    horario = models.TimeField(null=True, blank=True)
+    
+    REPETICAO = (
+        ('D', 'Diária'),
+        ('S', 'Semanal'),
+        ('M', 'Mensal'),
+        ('A', 'Anual'),
+        ('N', 'Não se repete'),
+    )
+    
+    repeticao = models.CharField(
+        max_length=1,
+        choices= REPETICAO,
+        null=True, blank=True,
+    )
+    
+    segunda = models.BooleanField(null=True)
+    terca = models.BooleanField(null=True)
+    quarta = models.BooleanField(null=True)
+    quinta = models.BooleanField(null=True)
+    sexta = models.BooleanField(null=True)
+    sabado = models.BooleanField(null=True)
+    domingo = models.BooleanField(null=True)
+    
+    
+    data_de_inicio = models.DateField(null=True, blank=True)
+    
+    
+    DURACAO = (
+        ('CON',	'Contínua'),
+        ('DUR',	'Durante...'),
+        ('ATE',	'Até a data'),
+    
+    )
+    
+    duracao = models.CharField(
+        max_length=3,
+        choices=DURACAO,
+        null=True, blank=True
+    )
+    
+    dias_de_duracao = models.PositiveIntegerField(null=True, blank=True)
+    data_final = models.DateField(null=True, blank=True)
+    
+    data_da_prescricao = models.DateField(null=True, blank=True)
+    medico_responsavel = models.ForeignKey('Equipe', on_delete=models.SET_NULL, blank=True, null=True,)
+  
+    
+    def __str__(self):
+        return f'{self.hospede} -> {self.medicacao}'
+    
+    
